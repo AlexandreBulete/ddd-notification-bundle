@@ -14,5 +14,8 @@
             <index columns="topic"/>
             <index columns="recipient_id"/>
         </indexes>
+        <unique-constraints>
+            <unique-constraint columns="recipient_id,topic" name="uniq_notification_subscription_recipient_topic"/>
+        </unique-constraints>
     </entity>
 </doctrine-mapping>

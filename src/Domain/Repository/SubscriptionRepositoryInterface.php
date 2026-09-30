@@ -26,6 +26,12 @@ interface SubscriptionRepositoryInterface extends RepositoryInterface
     public function forTopic(Topic $topic): array;
 
     /**
+     * The one subscription of a recipient to a topic, if any: a recipient is
+     * subscribed to a topic at most once (their channels for it live there).
+     */
+    public function findFor(RecipientId $recipientId, Topic $topic): ?Subscription;
+
+    /**
      * @return int<0, max>
      */
     public function countForRecipient(RecipientId $recipientId): int;

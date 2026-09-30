@@ -38,6 +38,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 final class SubscriptionResource implements ResourceInterface
 {
     /**
+     * @param list<string> $topics   topic values, chosen on creation (one row per topic)
      * @param list<string> $channels channel values
      */
     public function __construct(
@@ -46,8 +47,11 @@ final class SubscriptionResource implements ResourceInterface
         #[Assert\NotBlank(groups: ['create'])]
         public ?string $recipientId = null,
         public ?string $recipientName = null,
-        #[Assert\NotBlank]
-        #[Assert\Regex('/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/', message: 'notification.subscription.topic_format')]
+        // Chosen on creation (possibly several at once); carried read-only on
+        // edit, where only the channels change — hence no constraint here.
+        #[Assert\All([new Assert\Regex('/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/', message: 'notification.subscription.topic_format')])]
+        #[Assert\Count(min: 1, minMessage: 'notification.subscription.topics_required', groups: ['create'])]
+        public array $topics = [],
         public ?string $topic = null,
         #[Assert\Count(min: 1, minMessage: 'notification.subscription.channels_required')]
         public array $channels = [],

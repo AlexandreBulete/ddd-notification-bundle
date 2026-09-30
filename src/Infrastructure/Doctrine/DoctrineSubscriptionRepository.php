@@ -64,6 +64,19 @@ final class DoctrineSubscriptionRepository extends DoctrineRepository implements
             ->getResult();
     }
 
+    public function findFor(RecipientId $recipientId, Topic $topic): ?Subscription
+    {
+        /** @var ?Subscription */
+        return $this->query()
+            ->andWhere(self::ALIAS . '.recipientId = :recipient')
+            ->andWhere(self::ALIAS . '.topic = :topic')
+            ->setParameter('recipient', $recipientId->toRfc4122())
+            ->setParameter('topic', $topic->value())
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function countForRecipient(RecipientId $recipientId): int
     {
         $count = (int) $this->query()

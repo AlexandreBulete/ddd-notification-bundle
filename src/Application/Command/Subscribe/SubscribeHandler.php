@@ -21,6 +21,16 @@ final readonly class SubscribeHandler
 
     public function __invoke(SubscribeCommand $command): Subscription
     {
+        // A recipient subscribes to a topic at most once: subscribing again
+        // sets the channels of the existing one rather than duplicating it.
+        $subscription = $this->subscriptions->findFor($command->recipientId, $command->topic);
+        if ($subscription !== null) {
+            $subscription->changeChannels($command->channels, $this->clock->now());
+            $this->subscriptions->save($subscription);
+
+            return $subscription;
+        }
+
         $subscription = Subscription::create(
             $this->identities->nextSubscriptionId(),
             $command->recipientId,

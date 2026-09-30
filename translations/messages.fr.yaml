@@ -23,8 +23,9 @@ notification:
         index: Abonnements
         recipient: Destinataire
         topic: Sujet
-        topic_placeholder: "Choisir un sujet…"
-        topic_help: "En minuscules pointées (scan.vulnerability_found)."
+        topics: Sujets
+        topics_help: "Un abonnement par sujet coché, avec les mêmes canaux ; les canaux se règlent ensuite sujet par sujet."
+        topics_required: "Choisissez au moins un sujet."
         topic_format: "Minuscules, chiffres et tirets bas, en segments séparés par des points."
         channels: Canaux
         channels_required: "Choisissez au moins un canal."

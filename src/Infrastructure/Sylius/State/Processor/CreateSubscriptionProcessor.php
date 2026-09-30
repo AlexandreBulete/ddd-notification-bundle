@@ -15,6 +15,12 @@ use Sylius\Resource\Metadata\Operation;
 use Sylius\Resource\State\ProcessorInterface;
 use Webmozart\Assert\Assert;
 
+/**
+ * One form, one subscription per topic picked — a recipient's topics set in a
+ * single step. Subscribing to a topic they already follow updates its channels
+ * (the Subscribe use case is idempotent per recipient + topic), never a
+ * duplicate.
+ */
 final readonly class CreateSubscriptionProcessor implements ProcessorInterface
 {
     public function __construct(private CommandBusInterface $commandBus)
@@ -25,14 +31,17 @@ final readonly class CreateSubscriptionProcessor implements ProcessorInterface
     {
         Assert::isInstanceOf($data, SubscriptionResource::class);
         Assert::stringNotEmpty($data->recipientId);
-        Assert::stringNotEmpty($data->topic);
+        Assert::notEmpty($data->topics);
 
-        $subscription = $this->commandBus->dispatch(new SubscribeCommand(
-            RecipientId::fromString($data->recipientId),
-            new Topic($data->topic),
-            array_map(static fn (string $c): Channel => Channel::from($c), $data->channels),
-        ));
+        $recipientId = RecipientId::fromString($data->recipientId);
+        $channels = array_map(static fn (string $c): Channel => Channel::from($c), $data->channels);
 
-        return SubscriptionResource::fromModel($subscription, (string) $data->recipientName);
+        // notEmpty above guarantees the loop runs, so $last is a Subscription.
+        $last = null;
+        foreach ($data->topics as $topic) {
+            $last = $this->commandBus->dispatch(new SubscribeCommand($recipientId, new Topic($topic), $channels));
+        }
+
+        return SubscriptionResource::fromModel($last, (string) $data->recipientName);
     }
 }

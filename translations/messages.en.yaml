@@ -23,8 +23,9 @@ notification:
         index: Subscriptions
         recipient: Recipient
         topic: Topic
-        topic_placeholder: "Choose a topic…"
-        topic_help: "Dotted lower-case (scan.vulnerability_found)."
+        topics: Topics
+        topics_help: "One subscription per ticked topic, with the same channels; channels are then tuned topic by topic."
+        topics_required: "Pick at least one topic."
         topic_format: "Lower-case letters, digits and underscores, in dot-separated segments."
         channels: Channels
         channels_required: "Pick at least one channel."

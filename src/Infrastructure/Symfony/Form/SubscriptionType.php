@@ -13,7 +13,6 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final class SubscriptionType extends AbstractType
@@ -29,12 +28,28 @@ final class SubscriptionType extends AbstractType
         $isCreation = !$resource instanceof SubscriptionResource || $resource->id === null;
 
         if ($isCreation) {
+            // One form creates one subscription per topic picked — a recipient's
+            // topics set in a single step. Topics come from the host catalogue;
+            // with none declared, subscriptions are created by console.
             $builder->add('recipientId', ChoiceType::class, [
                 'label' => 'notification.subscription.recipient',
                 'choices' => $this->recipientChoices(),
                 'choice_translation_domain' => false,
             ]);
-            $builder->add('topic', ...$this->topicField());
+            $builder->add('topics', ChoiceType::class, [
+                'label' => 'notification.subscription.topics',
+                'help' => 'notification.subscription.topics_help',
+                'choices' => array_flip($this->topics->all()),
+                'choice_translation_domain' => false,
+                'multiple' => true,
+                'expanded' => true,
+            ]);
+        } else {
+            // On edit the topic is fixed; show it, change only the channels.
+            $builder->add('topic', TextType::class, [
+                'label' => 'notification.subscription.topic',
+                'disabled' => true,
+            ]);
         }
 
         $channels = [];
@@ -47,29 +62,6 @@ final class SubscriptionType extends AbstractType
             'multiple' => true,
             'expanded' => true,
         ]);
-    }
-
-    /**
-     * A dropdown of declared topics when the host published a catalogue, a
-     * free-text field otherwise — the package stays usable standalone.
-     *
-     * @return array{class-string<FormTypeInterface>, array<string, mixed>} [type, options]
-     */
-    private function topicField(): array
-    {
-        $topics = $this->topics->all();
-        if ($topics === []) {
-            return [TextType::class, [
-                'label' => 'notification.subscription.topic',
-                'help' => 'notification.subscription.topic_help',
-            ]];
-        }
-
-        return [ChoiceType::class, [
-            'label' => 'notification.subscription.topic',
-            'choices' => array_flip($topics),
-            'placeholder' => 'notification.subscription.topic_placeholder',
-        ]];
     }
 
     /**
