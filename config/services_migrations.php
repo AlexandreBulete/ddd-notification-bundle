@@ -1,3 +1,7 @@
+<?php
+
+declare(strict_types=1);
+
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Doctrine\Migrations\Version20260930120000;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 

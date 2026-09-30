@@ -74,7 +74,6 @@ final class DddNotificationBundle extends AbstractBundle
             'messenger' => ['routing' => [
                 \AlexandreBulete\DddNotificationBundle\Infrastructure\Messenger\DeliverNotification::class => 'async',
             ]],
-            'translator' => ['paths' => [$this->getPath() . '/translations']],
         ]);
     }
 

@@ -1,3 +1,7 @@
+<?php
+
+declare(strict_types=1);
+
 use AlexandreBulete\DddNotificationBundle\Application\Port\ChannelSenderInterface;
 use AlexandreBulete\DddNotificationBundle\Application\Port\DeliveryDispatcherInterface;
 use AlexandreBulete\DddNotificationBundle\Application\Port\NotifierInterface;
@@ -9,7 +13,6 @@ use AlexandreBulete\DddNotificationBundle\Infrastructure\Channel\SlackChannelSen
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Doctrine\DoctrineRecipientRepository;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Doctrine\DoctrineSubscriptionRepository;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Identity\UlidIdentityGenerator;
-use AlexandreBulete\DddNotificationBundle\Infrastructure\Messenger\DeliverNotificationHandler;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Messenger\MessengerDeliveryDispatcher;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\Notifier\Bridge\Slack\SlackOptions;
@@ -17,9 +20,14 @@ use Symfony\Component\Notifier\Bridge\Slack\SlackOptions;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 
+/**
+ * Handlers, queries and the console command register themselves through their
+ * attributes; the ports below are the hexagon's seams (ADR 0014).
+ */
 return static function (ContainerConfigurator $container): void {
-    $services = $container->services();
+    $src = \dirname(__DIR__) . '/src';
 
+    $services = $container->services();
     $services->defaults()
         ->autowire()
         ->autoconfigure()
@@ -27,20 +35,25 @@ return static function (ContainerConfigurator $container): void {
 
     $services->instanceof(ChannelSenderInterface::class)->tag('notification.channel_sender');
 
-    // Read side + repos
-    $services->set(DoctrineRecipientRepository::class);
-    $services->set(DoctrineSubscriptionRepository::class);
+    $services->load('AlexandreBulete\\DddNotificationBundle\\', $src . '/')
+        ->exclude([
+            $src . '/Domain',
+            $src . '/DddNotificationBundle.php',
+            $src . '/Infrastructure/Doctrine/Type',
+            $src . '/Infrastructure/Doctrine/Mapping',
+            $src . '/Infrastructure/Doctrine/Migrations',
+            // Wired conditionally below (its Notifier bridge may be absent).
+            $src . '/Infrastructure/Channel',
+        ]);
+
+    // ── Ports → adapters ──────────────────────────────────────────────────────
     $services->alias(RecipientRepositoryInterface::class, DoctrineRecipientRepository::class);
     $services->alias(SubscriptionRepositoryInterface::class, DoctrineSubscriptionRepository::class);
-    $services->set(UlidIdentityGenerator::class);
     $services->alias(IdentityGeneratorInterface::class, UlidIdentityGenerator::class);
-
-    // The notifier + async delivery
-    $services->set(Notifier::class);
     $services->alias(NotifierInterface::class, Notifier::class);
-    $services->set(MessengerDeliveryDispatcher::class)->args([service('command.bus')]);
     $services->alias(DeliveryDispatcherInterface::class, MessengerDeliveryDispatcher::class);
-    $services->set(DeliverNotificationHandler::class);
+
+    $services->set(MessengerDeliveryDispatcher::class)->args([service('command.bus')]);
 
     // Channel senders, each only when its Notifier bridge is installed.
     if (class_exists(SlackOptions::class)) {
