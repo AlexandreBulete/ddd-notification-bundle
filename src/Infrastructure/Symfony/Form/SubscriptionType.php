@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AlexandreBulete\DddNotificationBundle\Infrastructure\Symfony\Form;
 
 use AlexandreBulete\DddFoundation\Application\Query\QueryBusInterface;
+use AlexandreBulete\DddNotificationBundle\Application\Port\TopicCatalogInterface;
 use AlexandreBulete\DddNotificationBundle\Application\Query\FindRecipients\FindRecipientsQuery;
 use AlexandreBulete\DddNotificationBundle\Domain\ValueObject\Channel;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Sylius\Resource\SubscriptionResource;
@@ -12,11 +13,15 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final class SubscriptionType extends AbstractType
 {
-    public function __construct(private readonly QueryBusInterface $queryBus) {}
+    public function __construct(
+        private readonly QueryBusInterface $queryBus,
+        private readonly TopicCatalogInterface $topics,
+    ) {}
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -29,7 +34,7 @@ final class SubscriptionType extends AbstractType
                 'choices' => $this->recipientChoices(),
                 'choice_translation_domain' => false,
             ]);
-            $builder->add('topic', TextType::class, ['label' => 'notification.subscription.topic', 'help' => 'notification.subscription.topic_help']);
+            $builder->add('topic', ...$this->topicField());
         }
 
         $channels = [];
@@ -42,6 +47,29 @@ final class SubscriptionType extends AbstractType
             'multiple' => true,
             'expanded' => true,
         ]);
+    }
+
+    /**
+     * A dropdown of declared topics when the host published a catalogue, a
+     * free-text field otherwise — the package stays usable standalone.
+     *
+     * @return array{class-string<FormTypeInterface>, array<string, mixed>} [type, options]
+     */
+    private function topicField(): array
+    {
+        $topics = $this->topics->all();
+        if ($topics === []) {
+            return [TextType::class, [
+                'label' => 'notification.subscription.topic',
+                'help' => 'notification.subscription.topic_help',
+            ]];
+        }
+
+        return [ChoiceType::class, [
+            'label' => 'notification.subscription.topic',
+            'choices' => array_flip($topics),
+            'placeholder' => 'notification.subscription.topic_placeholder',
+        ]];
     }
 
     /**

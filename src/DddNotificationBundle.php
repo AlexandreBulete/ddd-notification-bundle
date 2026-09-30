@@ -21,6 +21,7 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
  * asynchronously. Standalone: no IAM, no project notion.
  *
  * @phpstan-type NotificationConfig array{
+ *     topics: array<string, string>,
  *     admin: array{enabled: bool, grid_limits: list<int>},
  * }
  */
@@ -35,6 +36,11 @@ final class DddNotificationBundle extends AbstractBundle
         // headless or API-only deployment turns off.
         $definition->rootNode()
             ->children()
+                ->arrayNode('topics')
+                    ->info('Topics a host publishes on, value => label, offered as a choice in the subscription form. Each bounded context declares the topic it raises.')
+                    ->useAttributeAsKey('name')
+                    ->scalarPrototype()->end()
+                ->end()
                 ->arrayNode('admin')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -58,6 +64,7 @@ final class DddNotificationBundle extends AbstractBundle
     {
         /** @var NotificationConfig $config */
         $container->parameters()
+            ->set('notification.topics', $config['topics'])
             ->set('notification.admin.grid_limits', $config['admin']['grid_limits']);
 
         $container->import($this->getPath() . '/config/services.php');

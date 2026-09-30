@@ -23,6 +23,7 @@ notification:
         index: Abonnements
         recipient: Destinataire
         topic: Sujet
+        topic_placeholder: "Choisir un sujet…"
         topic_help: "En minuscules pointées (scan.vulnerability_found)."
         topic_format: "Minuscules, chiffres et tirets bas, en segments séparés par des points."
         channels: Canaux

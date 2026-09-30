@@ -5,6 +5,8 @@ declare(strict_types=1);
 use AlexandreBulete\DddNotificationBundle\Application\Port\ChannelSenderInterface;
 use AlexandreBulete\DddNotificationBundle\Application\Port\DeliveryDispatcherInterface;
 use AlexandreBulete\DddNotificationBundle\Application\Port\NotifierInterface;
+use AlexandreBulete\DddNotificationBundle\Application\Port\TopicCatalogInterface;
+use AlexandreBulete\DddNotificationBundle\Infrastructure\Topic\ConfiguredTopicCatalog;
 use AlexandreBulete\DddNotificationBundle\Application\Service\Notifier;
 use AlexandreBulete\DddNotificationBundle\Domain\Repository\RecipientRepositoryInterface;
 use AlexandreBulete\DddNotificationBundle\Domain\Repository\SubscriptionRepositoryInterface;
@@ -17,6 +19,7 @@ use AlexandreBulete\DddNotificationBundle\Infrastructure\Messenger\MessengerDeli
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\Notifier\Bridge\Slack\SlackOptions;
 
+use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 
@@ -57,6 +60,10 @@ return static function (ContainerConfigurator $container): void {
     $services->alias(DeliveryDispatcherInterface::class, MessengerDeliveryDispatcher::class);
 
     $services->set(MessengerDeliveryDispatcher::class)->args([service('command.bus')]);
+
+    // Topics offered by the subscription form, declared by the host.
+    $services->set(ConfiguredTopicCatalog::class)->args([param('notification.topics')]);
+    $services->alias(TopicCatalogInterface::class, ConfiguredTopicCatalog::class);
 
     // Channel senders, each only when its Notifier bridge is installed.
     if (class_exists(SlackOptions::class)) {
