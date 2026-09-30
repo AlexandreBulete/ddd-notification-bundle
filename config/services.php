@@ -44,6 +44,9 @@ return static function (ContainerConfigurator $container): void {
             $src . '/Infrastructure/Doctrine/Migrations',
             // Wired conditionally below (its Notifier bridge may be absent).
             $src . '/Infrastructure/Channel',
+            // The back office is opt-in — see services_admin.php.
+            $src . '/Infrastructure/Sylius',
+            $src . '/Infrastructure/Symfony/Form',
         ]);
 
     // ── Ports → adapters ──────────────────────────────────────────────────────

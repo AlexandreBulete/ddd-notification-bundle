@@ -1,0 +1,29 @@
+notification:
+    menu:
+        root: Notifications
+
+    channel:
+        slack: Slack
+        email: Email
+        sms: SMS
+        whatsapp: WhatsApp
+
+    recipient:
+        index: Recipients
+        name: Name
+        channels: Channels
+        slack: Slack
+        slack_help: "A channel (#audits) or a Slack user id."
+        email: Email
+        sms: SMS
+        whatsapp: WhatsApp
+        phone_help: "In international format, +33612345678."
+
+    subscription:
+        index: Subscriptions
+        recipient: Recipient
+        topic: Topic
+        topic_help: "Dotted lower-case (scan.vulnerability_found)."
+        topic_format: "Lower-case letters, digits and underscores, in dot-separated segments."
+        channels: Channels
+        channels_required: "Pick at least one channel."

@@ -1,0 +1,29 @@
+notification:
+    menu:
+        root: Notifications
+
+    channel:
+        slack: Slack
+        email: Email
+        sms: SMS
+        whatsapp: WhatsApp
+
+    recipient:
+        index: Destinataires
+        name: Nom
+        channels: Canaux
+        slack: Slack
+        slack_help: "Canal (#audits) ou identifiant utilisateur Slack."
+        email: Email
+        sms: SMS
+        whatsapp: WhatsApp
+        phone_help: "Au format international, +33612345678."
+
+    subscription:
+        index: Abonnements
+        recipient: Destinataire
+        topic: Sujet
+        topic_help: "En minuscules pointées (scan.vulnerability_found)."
+        topic_format: "Minuscules, chiffres et tirets bas, en segments séparés par des points."
+        channels: Canaux
+        channels_required: "Choisissez au moins un canal."
