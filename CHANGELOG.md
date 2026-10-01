@@ -1,3 +1,14 @@
+## [1.1.0] - 2026-09-30
+
+### 🚀 Features
+
+- Back office destinataires et abonnements
+- Catalogue de sujets pour le formulaire d'abonnement
+- Abonnement multi-sujets et un abonnement unique par (destinataire, sujet)
+
+### 📚 Documentation
+
+- Update CHANGELOG.md for 1.0.0
 ## [1.0.0] - 2026-09-30
 
 ### 🚀 Features
