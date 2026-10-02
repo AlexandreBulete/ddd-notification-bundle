@@ -1,3 +1,12 @@
+## [1.2.0] - 2026-10-02
+
+### 🚀 Features
+
+- Canal email et import de destinataires par YAML
+
+### 📚 Documentation
+
+- Update CHANGELOG.md for 1.1.0
 ## [1.1.0] - 2026-09-30
 
 ### 🚀 Features
