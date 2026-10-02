@@ -11,12 +11,14 @@ use AlexandreBulete\DddNotificationBundle\Application\Service\Notifier;
 use AlexandreBulete\DddNotificationBundle\Domain\Repository\RecipientRepositoryInterface;
 use AlexandreBulete\DddNotificationBundle\Domain\Repository\SubscriptionRepositoryInterface;
 use AlexandreBulete\DddNotificationBundle\Domain\Service\IdentityGeneratorInterface;
+use AlexandreBulete\DddNotificationBundle\Infrastructure\Channel\EmailChannelSender;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Channel\SlackChannelSender;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Doctrine\DoctrineRecipientRepository;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Doctrine\DoctrineSubscriptionRepository;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Identity\UlidIdentityGenerator;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Messenger\MessengerDeliveryDispatcher;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Notifier\Bridge\Slack\SlackOptions;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
@@ -65,8 +67,11 @@ return static function (ContainerConfigurator $container): void {
     $services->set(ConfiguredTopicCatalog::class)->args([param('notification.topics')]);
     $services->alias(TopicCatalogInterface::class, ConfiguredTopicCatalog::class);
 
-    // Channel senders, each only when its Notifier bridge is installed.
+    // Channel senders, each only when its transport library is installed.
     if (class_exists(SlackOptions::class)) {
         $services->set(SlackChannelSender::class)->args([service('chatter')]);
+    }
+    if (interface_exists(MailerInterface::class)) {
+        $services->set(EmailChannelSender::class)->args([service(MailerInterface::class), param('notification.mail.from')]);
     }
 };

@@ -22,6 +22,7 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
  *
  * @phpstan-type NotificationConfig array{
  *     topics: array<string, string>,
+ *     mail: array{from: string},
  *     admin: array{enabled: bool, grid_limits: list<int>},
  * }
  */
@@ -40,6 +41,15 @@ final class DddNotificationBundle extends AbstractBundle
                     ->info('Topics a host publishes on, value => label, offered as a choice in the subscription form. Each bounded context declares the topic it raises.')
                     ->useAttributeAsKey('name')
                     ->scalarPrototype()->end()
+                ->end()
+                ->arrayNode('mail')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('from')
+                            ->defaultValue('')
+                            ->info('Sender address for the email channel (e.g. "pilot@boeki.fr"). Empty = email channel off.')
+                        ->end()
+                    ->end()
                 ->end()
                 ->arrayNode('admin')
                     ->addDefaultsIfNotSet()
@@ -65,6 +75,7 @@ final class DddNotificationBundle extends AbstractBundle
         /** @var NotificationConfig $config */
         $container->parameters()
             ->set('notification.topics', $config['topics'])
+            ->set('notification.mail.from', $config['mail']['from'])
             ->set('notification.admin.grid_limits', $config['admin']['grid_limits']);
 
         $container->import($this->getPath() . '/config/services.php');
