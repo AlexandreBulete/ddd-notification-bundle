@@ -29,9 +29,9 @@ use Symfony\Component\Yaml\Yaml;
  * Shape (top key `recipients` or `team`), every field but a name is optional:
  *
  *     recipients:
- *       - name: Quentin Mendel          # or firstname + lastname
- *         email: q.mendel@boeki.fr
- *         slack: U093JTMPVC0
+ *       - name: Jane Doe                # or firstname + lastname
+ *         email: jane.doe@example.test
+ *         slack: U0123456789
  *         sms: "+33600000000"
  *         whatsapp: "+33600000000"
  */

@@ -47,7 +47,7 @@ final class DddNotificationBundle extends AbstractBundle
                     ->children()
                         ->scalarNode('from')
                             ->defaultValue('')
-                            ->info('Sender address for the email channel (e.g. "pilot@boeki.fr"). Empty = email channel off.')
+                            ->info('Sender address for the email channel (e.g. "notifications@example.test"). Empty = email channel off.')
                         ->end()
                     ->end()
                 ->end()
