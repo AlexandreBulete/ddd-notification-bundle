@@ -1,3 +1,12 @@
+## [1.3.0] - 2026-11-24
+
+### 🚀 Features
+
+- Whatsapp channel through meta cloud api
+
+### 📚 Documentation
+
+- Update CHANGELOG.md for 1.2.2
 ## [1.2.2] - 2026-11-23
 
 ### 📚 Documentation
