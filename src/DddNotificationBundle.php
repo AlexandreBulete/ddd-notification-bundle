@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AlexandreBulete\DddNotificationBundle;
 
+use AlexandreBulete\DddNotificationBundle\Infrastructure\Channel\WhatsAppChannelSender;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Doctrine\Type\ChannelsType;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Doctrine\Type\HandlesType;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Doctrine\Type\RecipientIdType;
@@ -14,6 +15,7 @@ use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Notify people where they want it (ADR 0014): one topic, many recipients,
@@ -23,6 +25,7 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
  * @phpstan-type NotificationConfig array{
  *     topics: array<string, string>,
  *     mail: array{from: string},
+ *     whatsapp: array{enabled: bool, phone_number_id: string, token: string, template: string, language: string, parameters: list<'subject'|'body'>, api_version: string},
  *     admin: array{enabled: bool, grid_limits: list<int>},
  * }
  */
@@ -48,6 +51,37 @@ final class DddNotificationBundle extends AbstractBundle
                         ->scalarNode('from')
                             ->defaultValue('')
                             ->info('Sender address for the email channel (e.g. "notifications@example.test"). Empty = email channel off.')
+                        ->end()
+                    ->end()
+                ->end()
+                ->arrayNode('whatsapp')
+                    ->canBeEnabled()
+                    ->info('WhatsApp through Meta\'s WhatsApp Cloud API. Each notification is sent as an approved message template; needs symfony/http-client.')
+                    ->children()
+                        ->scalarNode('phone_number_id')
+                            ->defaultValue('')
+                            ->info('The sending number\'s id in Meta\'s WhatsApp Manager (not the number itself).')
+                        ->end()
+                        ->scalarNode('token')
+                            ->defaultValue('')
+                            ->info('A permanent system user access token, from an env variable.')
+                        ->end()
+                        ->scalarNode('template')
+                            ->defaultValue('notification')
+                            ->info('Name of the approved template.')
+                        ->end()
+                        ->scalarNode('language')
+                            ->defaultValue('en')
+                            ->info('Language code the template was approved in (e.g. "fr", "en_US").')
+                        ->end()
+                        ->arrayNode('parameters')
+                            ->info('What fills the template\'s body variables, in order: subject, body. Empty for a template without variables.')
+                            ->enumPrototype()->values(['subject', 'body'])->end()
+                            ->defaultValue(['subject', 'body'])
+                        ->end()
+                        ->scalarNode('api_version')
+                            ->defaultValue('v23.0')
+                            ->info('Graph API version.')
                         ->end()
                     ->end()
                 ->end()
@@ -79,6 +113,22 @@ final class DddNotificationBundle extends AbstractBundle
             ->set('notification.admin.grid_limits', $config['admin']['grid_limits']);
 
         $container->import($this->getPath() . '/config/services.php');
+
+        $whatsapp = $config['whatsapp'];
+        if ($whatsapp['enabled']) {
+            if (!interface_exists(HttpClientInterface::class)) {
+                throw new \LogicException('The WhatsApp channel needs an HTTP client: composer require symfony/http-client.');
+            }
+            $container->services()->set(WhatsAppChannelSender::class)
+                ->autowire()
+                ->tag('notification.channel_sender')
+                ->arg('$phoneNumberId', $whatsapp['phone_number_id'])
+                ->arg('$token', $whatsapp['token'])
+                ->arg('$template', $whatsapp['template'])
+                ->arg('$language', $whatsapp['language'])
+                ->arg('$parameters', $whatsapp['parameters'])
+                ->arg('$apiVersion', $whatsapp['api_version']);
+        }
 
         if ($config['admin']['enabled']) {
             $container->import($this->getPath() . '/config/services_admin.php');

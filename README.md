@@ -1,8 +1,7 @@
 # DDD Notification Bundle
 
 Notify people **where they want it**: one topic, many recipients, each on their
-own channel — Slack, email, SMS, WhatsApp. Built on Symfony Notifier, delivered
-asynchronously. Standalone: no IAM, no project notion.
+own channel — email, Slack, WhatsApp. Delivered asynchronously. Standalone: no IAM, no project notion.
 
 ## The idea
 
@@ -13,7 +12,8 @@ asynchronously. Standalone: no IAM, no project notion.
   email, a phone number).
 - A **subscription** routes a `(recipient, topic)` to some channels. *"Quentin +
   scan.vulnerability_found → Slack."*
-- A **channel** delivers, bridging to a Symfony Notifier transport.
+- A **channel** delivers: email (Symfony Mailer), Slack (Symfony Notifier),
+  WhatsApp (Meta's Cloud API).
 
 The caller does one thing:
 
@@ -37,17 +37,55 @@ composer require symfony/slack-notifier   # the channels you want
 bin/console doctrine:migrations:migrate
 ```
 
-Requires `alexandrebulete/ddd-symfony-bundle` ≥ 1.5 (tracing, buses). Channels
-are Symfony Notifier transports: install the bridge for each (Slack, Twilio for
-SMS/WhatsApp…) and configure its DSN in `config/packages/notifier.yaml`. A
-channel whose bridge is absent is simply not wired.
+Requires `alexandrebulete/ddd-symfony-bundle` ≥ 1.5 (tracing, buses). A
+channel whose library is absent or that is not configured is simply not wired:
+its deliveries are logged and skipped.
+
+## Channels
+
+| Channel | Needs | Handle |
+|---|---|---|
+| Email | `symfony/mailer` (`MAILER_DSN`), `notification.mail.from` | an email address |
+| Slack | `symfony/slack-notifier`, its DSN in `config/packages/notifier.yaml` | a channel or user id |
+| WhatsApp | `symfony/http-client`, `notification.whatsapp` | a phone number, `+33612345678` |
+
+The `sms` channel exists in the model but has no sender yet.
+
+### WhatsApp
+
+Messages go straight to Meta's WhatsApp Cloud API, no reseller. On Meta's
+side: a business app with the WhatsApp product, a dedicated sending number,
+a permanent system user token, and a **message template**, approved by Meta,
+since a business may only open a conversation with one. A template whose body
+has two variables fits every notification:
+
+> {{1}} — {{2}}
+
+The notification's subject fills `{{1}}`, its body `{{2}}` (line breaks
+become spaces). Meta bills each template message, at a per-country rate.
+
+```yaml
+notification:
+    whatsapp:
+        enabled: true
+        phone_number_id: '%env(WHATSAPP_PHONE_NUMBER_ID)%'   # empty = channel off
+        token: '%env(WHATSAPP_TOKEN)%'
+        template: notification          # the approved template's name
+        language: fr                    # the language it was approved in
+        parameters: [subject, body]     # what fills {{1}}, {{2}}…; [] if none
+        api_version: v23.0
+```
+
+A refused message (unknown template, number not on WhatsApp, expired token)
+throws: Messenger retries it, then sends it to the failure transport, with
+Meta's error code in the message.
 
 ## Managing recipients
 
-Until the back office lands, a one-liner:
+In the back office (**Notifications**), or from the console:
 
 ```bash
-bin/console notification:subscribe "Quentin" scan.vulnerability_found slack "#alerts"
+bin/console notification:subscribe "Alice" scan.vulnerability_found slack "#alerts"
 ```
 
 ## Delivery
