@@ -1,4 +1,13 @@
 notification:
+    ui:
+        recipients: Destinataires
+        recipient: destinataire
+        new_recipient: Nouveau destinataire
+        edit_recipient: Modifier le destinataire
+        subscriptions: Abonnements
+        subscription: abonnement
+        new_subscription: Nouvel abonnement
+        edit_subscription: Modifier l’abonnement
     menu:
         root: Notifications
 
