@@ -12,6 +12,8 @@ use AlexandreBulete\DddNotificationBundle\Infrastructure\Sylius\State\Processor\
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Sylius\State\Processor\UpdateSubscriptionProcessor;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Sylius\State\Provider\SubscriptionItemProvider;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Symfony\Form\SubscriptionType;
+use AlexandreBulete\DddSyliusBundle\Admin\View\AdminRecordInterface;
+use AlexandreBulete\DddSyliusBundle\Admin\View\StatusBadge;
 use Sylius\Resource\Metadata\AsResource;
 use Sylius\Resource\Metadata\Create;
 use Sylius\Resource\Metadata\Delete;
@@ -35,7 +37,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Index(grid: SubscriptionGrid::class),
     ],
 )]
-final class SubscriptionResource implements ResourceInterface
+final class SubscriptionResource implements ResourceInterface, AdminRecordInterface
 {
     /**
      * @param list<string> $topics   topic values, chosen on creation (one row per topic)
@@ -75,5 +77,20 @@ final class SubscriptionResource implements ResourceInterface
             channels: $channels,
             channelsSummary: $channels === [] ? '—' : implode(', ', $channels),
         );
+    }
+
+    public function adminLabel(): ?string
+    {
+        return $this->recipientName;
+    }
+
+    public function adminStatus(): ?StatusBadge
+    {
+        return null;
+    }
+
+    public function adminPublicUrl(): ?string
+    {
+        return null;
     }
 }

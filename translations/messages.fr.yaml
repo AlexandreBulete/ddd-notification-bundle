@@ -1,4 +1,8 @@
 notification:
+    section:
+        recipient: "Le destinataire"
+        channels: "Canaux"
+        subscription: "L’abonnement"
     ui:
         recipients: Destinataires
         recipient: destinataire

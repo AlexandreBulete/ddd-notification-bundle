@@ -32,11 +32,13 @@ final class SubscriptionType extends AbstractType
             // topics set in a single step. Topics come from the host catalogue;
             // with none declared, subscriptions are created by console.
             $builder->add('recipientId', ChoiceType::class, [
+                'section' => 'subscription',
                 'label' => 'notification.subscription.recipient',
                 'choices' => $this->recipientChoices(),
                 'choice_translation_domain' => false,
             ]);
             $builder->add('topics', ChoiceType::class, [
+                'section' => 'subscription',
                 'label' => 'notification.subscription.topics',
                 'help' => 'notification.subscription.topics_help',
                 'choices' => array_flip($this->topics->all()),
@@ -47,6 +49,7 @@ final class SubscriptionType extends AbstractType
         } else {
             // On edit the topic is fixed; show it, change only the channels.
             $builder->add('topic', TextType::class, [
+                'section' => 'subscription',
                 'label' => 'notification.subscription.topic',
                 'disabled' => true,
             ]);
@@ -57,6 +60,7 @@ final class SubscriptionType extends AbstractType
             $channels['notification.channel.' . $channel->value] = $channel->value;
         }
         $builder->add('channels', ChoiceType::class, [
+            'section' => 'channels',
             'label' => 'notification.subscription.channels',
             'choices' => $channels,
             'multiple' => true,
@@ -79,6 +83,12 @@ final class SubscriptionType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => SubscriptionResource::class]);
+        $resolver->setDefaults([
+            'data_class' => SubscriptionResource::class,
+            'sections' => [
+                'subscription' => ['label' => 'notification.section.subscription'],
+                'channels' => ['label' => 'notification.section.channels', 'column' => 'side'],
+            ],
+        ]);
     }
 }

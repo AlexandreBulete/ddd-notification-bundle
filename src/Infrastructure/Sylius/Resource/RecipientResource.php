@@ -12,6 +12,8 @@ use AlexandreBulete\DddNotificationBundle\Infrastructure\Sylius\State\Processor\
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Sylius\State\Processor\UpdateRecipientProcessor;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Sylius\State\Provider\RecipientItemProvider;
 use AlexandreBulete\DddNotificationBundle\Infrastructure\Symfony\Form\RecipientType;
+use AlexandreBulete\DddSyliusBundle\Admin\View\AdminRecordInterface;
+use AlexandreBulete\DddSyliusBundle\Admin\View\StatusBadge;
 use Sylius\Resource\Metadata\AsResource;
 use Sylius\Resource\Metadata\Create;
 use Sylius\Resource\Metadata\Delete;
@@ -35,7 +37,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Index(grid: RecipientGrid::class),
     ],
 )]
-final class RecipientResource implements ResourceInterface
+final class RecipientResource implements ResourceInterface, AdminRecordInterface
 {
     public function __construct(
         public ?AbstractUid $id = null,
@@ -86,5 +88,20 @@ final class RecipientResource implements ResourceInterface
             Channel::Sms->value => $this->sms,
             Channel::WhatsApp->value => $this->whatsapp,
         ];
+    }
+
+    public function adminLabel(): ?string
+    {
+        return $this->name;
+    }
+
+    public function adminStatus(): ?StatusBadge
+    {
+        return null;
+    }
+
+    public function adminPublicUrl(): ?string
+    {
+        return null;
     }
 }

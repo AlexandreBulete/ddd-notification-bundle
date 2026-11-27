@@ -12,7 +12,7 @@
         "php": "^8.4",
         "alexandrebulete/ddd-doctrine-bridge": "^1.4",
         "alexandrebulete/ddd-foundation": "^1.5",
-        "alexandrebulete/ddd-sylius-bundle": "^1.0",
+        "alexandrebulete/ddd-sylius-bundle": "^1.6",
         "alexandrebulete/ddd-symfony-bundle": "^1.5",
         "doctrine/dbal": "^4.3",
         "doctrine/doctrine-bundle": "^2.13 || ^3.0",
